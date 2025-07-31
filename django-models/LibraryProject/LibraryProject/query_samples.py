@@ -1,28 +1,35 @@
-from django.db import models
+import os
+import django
 
-class Author(models.Model):
-    name = models.CharField(max_length=100)
+# Setup Django environment
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "LibraryProject.settings")
+django.setup()
 
-    def __str__(self):
-        return self.name  
+from relationship_app.models import Author, Book, Library, Librarian
 
-class Book(models.Model):
-    title = models.CharField(max_length=200)
-    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='books')
+# 📌 1. Query all books by a specific author
+author_name = "George Orwell"
+try:
+    author = Author.objects.get(name=author_name)
+    books_by_author = Book.objects.filter(author=author)
+    print(f"\nBooks by {author_name}:")
+    for book in books_by_author:
+        print(f"- {book.title}")
+except Author.DoesNotExist:
+    print(f"No author named {author_name} found.")
+# 📌 2. List all books in a library
+library_name = "Central Library"
+try:
+    library = Library.objects.get(name=library_name)
+    print(f"\nBooks in {library_name}:")
+    for book in library.books.all():
+        print(f"- {book.title}")
+except Library.DoesNotExist:
+    print(f"No library named {library_name} found.")
 
-    def __str__(self):
-        return self.title  # This is okay since 'title' is the display field
-
-class Library(models.Model):
-    name = models.CharField(max_length=100)
-    books = models.ManyToManyField(Book, related_name='libraries')
-
-    def __str__(self):
-        return self.name  
-
-class Librarian(models.Model):
-    name = models.CharField(max_length=100)
-    library = models.OneToOneField(Library, on_delete=models.CASCADE, related_name='librarian')
-
-    def __str__(self):
-        return self.name  
+# 📌 3. Retrieve the librarian for a library
+try:
+    librarian = Librarian.objects.get(library__name=library_name)
+    print(f"\nLibrarian for {library_name}: {librarian.name}")
+except Librarian.DoesNotExist:
+    print(f"No librarian assigned to {library_name}.")
