@@ -28,5 +28,5 @@ class Librarian(models.Model):
     library = models.OneToOneField(Library, on_delete=models.CASCADE)
     
     def _str_(self):
-        return self.name
+        return self.name
 
