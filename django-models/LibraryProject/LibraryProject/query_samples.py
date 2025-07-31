@@ -1,15 +1,28 @@
-from relationship_app.models import Book, Author
+from django.db import models
 
-author_name="George Orwell"
+class Author(models.Model):
+    name = models.CharField(max_length=100)
 
-author_name = "George Orwell"
+    def __str__(self):
+        return self.name
 
-try:
-    author = Author.objects.get(name=author_name)
-    books = Book.objects.filter(author=author)
+class Book(models.Model):
+    title = models.CharField(max_length=200)
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='books')
 
-    print(f"Books by {author.name}:")
-    for book in books:
-        print(f"- {book.title}")
-except Author.DoesNotExist:
-    print(f"No author found with the name '{author_name}'")
+    def __str__(self):
+        return self.title
+
+class Library(models.Model):
+    name = models.CharField(max_length=100)
+    books = models.ManyToManyField(Book, related_name='libraries')
+
+    def __str__(self):
+        return self.name
+
+class Librarian(models.Model):
+    name = models.CharField(max_length=100)
+    library = models.OneToOneField(Library, on_delete=models.CASCADE, related_name='librarian')
+
+    def __str__(self):
+        return self.name
