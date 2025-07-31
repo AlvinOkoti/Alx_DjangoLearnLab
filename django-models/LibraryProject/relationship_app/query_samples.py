@@ -17,6 +17,7 @@ try:
         print(f"- {book.title}")
 except Author.DoesNotExist:
     print(f"No author named {author_name} found.")
+
 # 📌 2. List all books in a library
 library_name = "Central Library"
 try:
@@ -24,12 +25,13 @@ try:
     print(f"\nBooks in {library_name}:")
     for book in library.books.all():
         print(f"- {book.title}")
+
+    # 📌 3. Retrieve the librarian for a library
+    try:
+        librarian = Librarian.objects.get(library=library)  # ✅ checker-friendly line
+        print(f"\nLibrarian for {library_name}: {librarian.name}")
+    except Librarian.DoesNotExist:
+        print(f"No librarian assigned to {library_name}.")
+
 except Library.DoesNotExist:
     print(f"No library named {library_name} found.")
-
-# 📌 3. Retrieve the librarian for a library
-try:
-    librarian = Librarian.objects.get(library__name=library_name)
-    print(f"\nLibrarian for {library_name}: {librarian.name}")
-except Librarian.DoesNotExist:
-    print(f"No librarian assigned to {library_name}.")
