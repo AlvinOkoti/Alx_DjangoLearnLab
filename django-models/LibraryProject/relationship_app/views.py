@@ -7,6 +7,10 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import UserProfile
+from django.contrib.auth.decorators import permission_required, login_required
+from django.shortcuts import render, redirect, get_object_or_404
+from .forms import BookForm  # Assume you've created this
+
 
 def is_admin(user):
     return hasattr(user, 'userprofile') and user.userprofile.role == 'Admin'
