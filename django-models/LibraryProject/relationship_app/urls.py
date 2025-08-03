@@ -1,9 +1,17 @@
 # relationship_app/urls.py
 from django.urls import path
+from django.contrib.auth.views import LoginView, LogoutView
 from .views import list_books, LibraryDetailView
 from django.contrib import admin
 from django.urls import path, include
 from . import views
+
+urlpatterns = [
+    path('login/', LoginView.as_view(template_name='relationship_app/login.html'), name='login'),
+    path('logout/', LogoutView.as_view(template_name='relationship_app/logout.html'), name='logout'),
+    path('register/', views.register, name='register'),
+    path('', views.home, name='home'),  # Optional home view after login
+]
 
 urlpatterns = [
     path('books/', list_books, name='list_books'),
