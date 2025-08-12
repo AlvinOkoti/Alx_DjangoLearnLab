@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 from django.contrib import admin
 from django.urls import path, include
+from .views import BookListView
 
 urlpatterns = [
     path('books/', views.BookListView.as_view(), name='book-list'),
@@ -11,4 +12,5 @@ urlpatterns = [
     path('books/delete/<int:pk>/', views.BookDeleteView.as_view(), name='book-delete'),
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),  # include API URLs
+    path('books/', BookListView.as_view(), name='book-list'),
 ]
