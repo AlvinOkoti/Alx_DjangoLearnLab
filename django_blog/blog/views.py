@@ -1,11 +1,45 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.shortcuts import get_object_or_404
+from django.contrib.auth import login, authenticate
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from .models import Post
 from .forms import PostForm
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.models import User
+from django import forms
 
 # Create your views here.
+# Extend UserCreationForm to include email
+class CustomUserCreationForm(UserCreationForm):
+    email = forms.EmailField(required=True)
+
+    class Meta:
+        model = User
+        fields = ("username", "email", "password1", "password2")
+
+# Registration View
+def register(request):
+    if request.method == "POST":
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)  # log in immediately after register
+            return redirect("blog-home")
+    else:
+        form = CustomUserCreationForm()
+    return render(request, "registration/register.html", {"form": form})
+
+# Profile View (requires login)
+@login_required
+def profile(request):
+    if request.method == "POST":
+        request.user.email = request.POST.get("email")
+        request.user.save()
+        return redirect("profile")
+    return render(request, "registration/profile.html")
+
 # List all posts
 class PostListView(ListView):
     model = Post
