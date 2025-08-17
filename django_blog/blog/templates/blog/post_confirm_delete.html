@@ -7,4 +7,13 @@
     <button type="submit">Confirm Delete</button>
     <a href="{% url 'post-detail' object.pk %}">Cancel</a>
 </form>
+
+<p><strong>Tags:</strong>
+  {% for tag in post.tags.all %}
+    <a href="{% url 'posts-by-tag' tag.name %}">#{{ tag.name }}</a>
+  {% empty %}
+    No tags
+  {% endfor %}
+</p>
+
 {% endblock %}

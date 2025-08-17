@@ -43,3 +43,8 @@ class CommentForm(forms.ModelForm):
         if len(content) < 3:
             raise forms.ValidationError("Comment must be at least 3 characters long.")
         return content
+
+class PostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ['title', 'content', 'tags']
