@@ -10,6 +10,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
 from django import forms
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.shortcuts import get_object_or_404
+from django.urls import reverse
+from django.views.generic import CreateView, UpdateView, DeleteView
+
+from .forms import CommentForm
+from .models import Post, Comment
 
 # Create your views here.
 # Extend UserCreationForm to include email
@@ -96,3 +103,45 @@ def register(request):
     else:
         form = UserCreationForm()
     return render(request, "registration/register.html", {"form": form})
+
+class CommentCreateView(LoginRequiredMixin, CreateView):
+    model = Comment
+    form_class = CommentForm
+    template_name = "blog/comment_form.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.post_obj = get_object_or_404(Post, pk=kwargs["post_id"])
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        form.instance.post = self.post_obj
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse("post-detail", args=[self.post_obj.pk])
+
+#restrict editing/deleting to comment author only
+class CommentAuthorRequiredMixin(UserPassesTestMixin):
+    def test_func(self):
+        comment = self.get_object()
+        return comment.author == self.request.user
+    
+#Update view
+class CommentUpdateView(LoginRequiredMixin, CommentAuthorRequiredMixin, UpdateView):
+    model = Comment
+    form_class = CommentForm
+    template_name = "blog/comment_form.html"
+
+    def get_success_url(self):
+        return reverse("post-detail", args=[self.object.post.pk])
+
+#Comment delete view
+class CommentDeleteView(LoginRequiredMixin, CommentAuthorRequiredMixin, DeleteView):
+    model = Comment
+    template_name = "blog/comment_confirm_delete.html"
+
+    def get_success_url(self):
+        return reverse("post-detail", args=[self.object.post.pk])
+
+
