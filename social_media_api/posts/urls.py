@@ -2,6 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import PostViewSet, CommentViewSet
 from django.contrib import admin
+from . import views
 
 router = DefaultRouter()
 router.register(r'posts', PostViewSet, basename="post")
@@ -14,4 +15,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/accounts/', include('accounts.urls')),  # auth routes
     path('api/', include('posts.urls')),  # posts and comments route
+    path('feed/', views.feed, name='feed'),
 ]

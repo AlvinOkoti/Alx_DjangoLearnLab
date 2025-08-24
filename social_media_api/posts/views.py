@@ -9,6 +9,9 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Post, Like
 from .serializers import PostSerializer
 from notifications.models import Notification
+from rest_framework.decorators import api_view, permission_classes
+from .models import Post
+from .serializers import PostSerializer
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
@@ -107,3 +110,12 @@ class PostViewSet(viewsets.ModelViewSet):
             return Response({"message": "Post unliked"}, status=status.HTTP_200_OK)
         except Like.DoesNotExist:
             return Response({"message": "You haven't liked this post"}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def feed(request):
+    # Get users that the current user follows
+    followed_users = request.user.following.all()
+    posts = Post.objects.filter(author__in=followed_users).order_by('-created_at')
+    serializer = PostSerializer(posts, many=True)
+    return Response(serializer.data)
