@@ -16,4 +16,8 @@ urlpatterns = [
     path('api/accounts/', include('accounts.urls')),  # auth routes
     path('api/', include('posts.urls')),  # posts and comments route
     path('feed/', views.feed, name='feed'),
+    path('', views.PostListCreateView.as_view(), name='post-list-create'),
+    path('<int:pk>/', views.PostDetailView.as_view(), name='post-detail'),
+    path('<int:pk>/like/', views.LikePostView.as_view(), name='like-post'),
+    path('feed/', views.FeedView.as_view(), name='feed'),
 ]

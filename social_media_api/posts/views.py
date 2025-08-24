@@ -12,7 +12,15 @@ from notifications.models import Notification
 from rest_framework.decorators import api_view, permission_classes
 from .models import Post
 from .serializers import PostSerializer
+from rest_framework import generics, permissions
+from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
 
+from .models import Post, Like
+from .serializers import PostSerializer
+from accounts.models import CustomUser
+
+#class from here additions
 class IsOwnerOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:  # GET, HEAD, OPTIONS
@@ -119,3 +127,16 @@ def feed(request):
     posts = Post.objects.filter(author__in=followed_users).order_by('-created_at')
     serializer = PostSerializer(posts, many=True)
     return Response(serializer.data)
+
+class FeedView(generics.GenericAPIView):
+    serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        # Get the users that current user is following
+        following_users = user.following.all()
+        # Filter posts by followed users and order by most recent
+        posts = Post.objects.filter(author__in=following_users).order_by("-created_at")
+        serializer = self.get_serializer(posts, many=True)
+        return Response(serializer.data)
