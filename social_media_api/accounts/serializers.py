@@ -1,36 +1,11 @@
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
-from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth import get_user_model, authenticate
+from rest_framework.authtoken.models import Token
 
 User = get_user_model()
 
-
-class UserSerializer(serializers.ModelSerializer):
-    """Serializer for retrieving user info"""
-    followers_count = serializers.SerializerMethodField()
-    following_count = serializers.SerializerMethodField()
-
-    class Meta:
-        model = User
-        fields = [
-            "id",
-            "username",
-            "email",
-            "profile_picture",
-            "followers_count",
-            "following_count",
-        ]
-
-    def get_followers_count(self, obj):
-        return obj.followers.count()
-
-    def get_following_count(self, obj):
-        return obj.following.count()
-
-
 class RegisterSerializer(serializers.ModelSerializer):
-    """Serializer for user registration"""
-    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    password = serializers.CharField(write_only=True, required=True)
     password2 = serializers.CharField(write_only=True, required=True)
 
     class Meta:
@@ -44,18 +19,28 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop("password2")
-        user = User.objects.create_user(**validated_data)
+        # create user using Django's user manager
+        user = get_user_model().objects.create_user(**validated_data)
+        # generate auth token for the user
+        Token.objects.create(user=user)
         return user
 
 
 class LoginSerializer(serializers.Serializer):
-    """Serializer for login"""
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
+    def validate(self, attrs):
+        email = attrs.get("email")
+        password = attrs.get("password")
+        user = authenticate(username=email, password=password)
+        if not user:
+            raise serializers.ValidationError("Invalid login credentials.")
+        attrs["user"] = user
+        return attrs
 
-class FollowSerializer(serializers.ModelSerializer):
-    """Serializer for following/unfollowing other users"""
+
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "username", "profile_picture"]
+        fields = ["id", "username", "email", "profile_picture"]
